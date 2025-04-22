@@ -1,0 +1,5 @@
+defaultNamespace: cattle-monitoring-system
+namespaceLabels:
+  pod-security.kubernetes.io/enforce: privileged
+helm:
+  releaseName: rke-monitoring

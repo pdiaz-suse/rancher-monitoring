@@ -1,0 +1,21 @@
+defaultNamespace: cattle-monitoring-system
+helm:
+  releaseName: rancher-monitoring-config
+
+targetCustomizations:
+- name: bits-mgmt-clstr-kon
+  yaml:
+    overlays:
+      - bits-mgmt-clstr
+  clusterSelector:
+    matchLabels:
+      management.cattle.io/cluster-display-name: bits-mgmt-clstr-kon
+      stage: kon
+- name: bits-mgmt-clstr-prod
+  yaml:
+    overlays:
+      - bits-mgmt-clstr
+  clusterSelector:
+    matchLabels:
+      management.cattle.io/cluster-display-name: bits-mgmt-clstr-prod
+      stage: prod

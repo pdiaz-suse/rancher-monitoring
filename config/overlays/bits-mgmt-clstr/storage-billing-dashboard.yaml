@@ -1,0 +1,793 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  labels:
+    grafana_dashboard: "1"
+  name: storage-billing-dashboard-configmaps
+  namespace: cattle-monitoring-system
+data:
+  storage-billing-dashboard.json: |-
+    {
+    "__inputs": [
+        {
+        "name": "DS_MIMIR-HARVESTER",
+        "label": "Mimir-Harvester",
+        "description": "",
+        "type": "datasource",
+        "pluginId": "prometheus",
+        "pluginName": "Prometheus"
+        }
+    ],
+    "__elements": {},
+    "__requires": [
+        {
+        "type": "grafana",
+        "id": "grafana",
+        "name": "Grafana",
+        "version": "10.4.9"
+        },
+        {
+        "type": "datasource",
+        "id": "prometheus",
+        "name": "Prometheus",
+        "version": "1.0.0"
+        },
+        {
+        "type": "panel",
+        "id": "stat",
+        "name": "Stat",
+        "version": ""
+        },
+        {
+        "type": "panel",
+        "id": "table",
+        "name": "Table",
+        "version": ""
+        }
+    ],
+    "annotations": {
+        "list": [
+        {
+            "builtIn": 1,
+            "datasource": {
+            "type": "grafana",
+            "uid": "-- Grafana --"
+            },
+            "enable": true,
+            "hide": true,
+            "iconColor": "rgba(0, 211, 255, 1)",
+            "name": "Annotations & Alerts",
+            "type": "dashboard"
+        }
+        ]
+    },
+    "editable": true,
+    "fiscalYearStartMonth": 0,
+    "graphTooltip": 0,
+    "id": null,
+    "links": [],
+    "panels": [
+        {
+        "collapsed": false,
+        "gridPos": {
+            "h": 1,
+            "w": 24,
+            "x": 0,
+            "y": 0
+        },
+        "id": 2,
+        "panels": [],
+        "repeat": "cluster",
+        "repeatDirection": "h",
+        "title": "$cluster",
+        "type": "row"
+        },
+        {
+        "datasource": {
+            "type": "prometheus",
+            "uid": "Mimir-Harvester"
+        },
+        "fieldConfig": {
+            "defaults": {
+            "color": {
+                "mode": "thresholds"
+            },
+            "custom": {
+                "align": "left",
+                "cellOptions": {
+                "type": "auto"
+                },
+                "inspect": false
+            },
+            "decimals": 2,
+            "fieldMinMax": false,
+            "mappings": [],
+            "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                {
+                    "color": "green",
+                    "value": null
+                },
+                {
+                    "color": "red",
+                    "value": 80
+                }
+                ]
+            },
+            "unit": "none"
+            },
+            "overrides": [
+            {
+                "matcher": {
+                "id": "byName",
+                "options": "pvc"
+                },
+                "properties": [
+                {
+                    "id": "custom.width",
+                    "value": 400
+                }
+                ]
+            },
+            {
+                "matcher": {
+                "id": "byName",
+                "options": "pvc_namespace"
+                },
+                "properties": [
+                {
+                    "id": "custom.width",
+                    "value": 157
+                }
+                ]
+            },
+            {
+                "matcher": {
+                "id": "byName",
+                "options": "volume"
+                },
+                "properties": [
+                {
+                    "id": "custom.width",
+                    "value": 356
+                }
+                ]
+            },
+            {
+                "matcher": {
+                "id": "byName",
+                "options": "Storage Used (GB) (last)"
+                },
+                "properties": [
+                {
+                    "id": "custom.width",
+                    "value": 145
+                }
+                ]
+            }
+            ]
+        },
+        "gridPos": {
+            "h": 16,
+            "w": 16,
+            "x": 0,
+            "y": 1
+        },
+        "id": 3,
+        "options": {
+            "cellHeight": "sm",
+            "footer": {
+            "countRows": false,
+            "fields": [
+                "Storage Used (GB) (last)"
+            ],
+            "reducer": [
+                "sum"
+            ],
+            "show": false
+            },
+            "showHeader": true,
+            "sortBy": [
+            {
+                "desc": false,
+                "displayName": "pvc"
+            }
+            ]
+        },
+        "pluginVersion": "10.4.9",
+        "targets": [
+            {
+            "datasource": {
+                "type": "prometheus",
+                "uid": "Mimir-Harvester"
+            },
+            "editorMode": "code",
+            "exemplar": false,
+            "expr": "longhorn_volume_actual_size_bytes{pvc_namespace=\"$cluster\"} / 1024 / 1024 / 1024",
+            "format": "table",
+            "instant": true,
+            "legendFormat": "__auto",
+            "range": false,
+            "refId": "A"
+            }
+        ],
+        "title": "$cluster",
+        "transformations": [
+            {
+            "id": "organize",
+            "options": {
+                "excludeByName": {
+                "Time": true,
+                "container": true,
+                "endpoint": true,
+                "instance": true,
+                "job": true,
+                "namespace": true,
+                "node": true,
+                "pod": true,
+                "prometheus": true,
+                "prometheus_replica": true,
+                "service": true
+                },
+                "includeByName": {},
+                "indexByName": {},
+                "renameByName": {
+                "Value": "Storage Used (GB)"
+                }
+            }
+            },
+            {
+            "id": "groupBy",
+            "options": {
+                "fields": {
+                "Storage Used (GB)": {
+                    "aggregations": [
+                    "last"
+                    ],
+                    "operation": "aggregate"
+                },
+                "Time": {
+                    "aggregations": [],
+                    "operation": "groupby"
+                },
+                "Value": {
+                    "aggregations": [
+                    "lastNotNull"
+                    ],
+                    "operation": "aggregate"
+                },
+                "pvc": {
+                    "aggregations": [],
+                    "operation": "groupby"
+                },
+                "pvc_namespace": {
+                    "aggregations": [],
+                    "operation": "groupby"
+                },
+                "volume": {
+                    "aggregations": [],
+                    "operation": "groupby"
+                }
+                }
+            }
+            }
+        ],
+        "type": "table"
+        },
+        {
+        "datasource": {
+            "type": "prometheus",
+            "uid": "Mimir-Harvester"
+        },
+        "fieldConfig": {
+            "defaults": {
+            "color": {
+                "mode": "thresholds"
+            },
+            "mappings": [],
+            "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                {
+                    "color": "green",
+                    "value": null
+                }
+                ]
+            },
+            "unit": "TiB"
+            },
+            "overrides": []
+        },
+        "gridPos": {
+            "h": 4,
+            "w": 7,
+            "x": 16,
+            "y": 1
+        },
+        "id": 20,
+        "options": {
+            "colorMode": "value",
+            "graphMode": "area",
+            "justifyMode": "auto",
+            "orientation": "auto",
+            "reduceOptions": {
+            "calcs": [
+                "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+            },
+            "showPercentChange": false,
+            "textMode": "auto",
+            "wideLayout": true
+        },
+        "pluginVersion": "10.4.9",
+        "targets": [
+            {
+            "datasource": {
+                "type": "prometheus",
+                "uid": "Mimir-Harvester"
+            },
+            "editorMode": "code",
+            "exemplar": false,
+            "expr": "sum(longhorn_volume_actual_size_bytes{pvc_namespace=\"$cluster\"}) / 1024 / 1024 / 1024 / 1024",
+            "format": "table",
+            "instant": true,
+            "legendFormat": "__auto",
+            "range": false,
+            "refId": "A"
+            }
+        ],
+        "title": "$cluster Storageverbrauch (mit Clusternodes)",
+        "type": "stat"
+        },
+        {
+        "datasource": {
+            "type": "prometheus",
+            "uid": "Mimir-Harvester"
+        },
+        "fieldConfig": {
+            "defaults": {
+            "color": {
+                "mode": "thresholds"
+            },
+            "mappings": [],
+            "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                {
+                    "color": "green",
+                    "value": null
+                }
+                ]
+            },
+            "unit": "TiB"
+            },
+            "overrides": []
+        },
+        "gridPos": {
+            "h": 4,
+            "w": 7,
+            "x": 16,
+            "y": 5
+        },
+        "id": 45,
+        "options": {
+            "colorMode": "value",
+            "graphMode": "area",
+            "justifyMode": "auto",
+            "orientation": "auto",
+            "reduceOptions": {
+            "calcs": [
+                "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+            },
+            "showPercentChange": false,
+            "textMode": "auto",
+            "wideLayout": true
+        },
+        "pluginVersion": "10.4.9",
+        "targets": [
+            {
+            "datasource": {
+                "type": "prometheus",
+                "uid": "Mimir-Harvester"
+            },
+            "editorMode": "code",
+            "exemplar": false,
+            "expr": "sum(longhorn_volume_actual_size_bytes{pvc_namespace=\"$cluster\", pvc!~\"$cluster-.*\"}) / 1024 / 1024 / 1024 / 1024",
+            "format": "table",
+            "instant": true,
+            "legendFormat": "__auto",
+            "range": false,
+            "refId": "A"
+            }
+        ],
+        "title": "$cluster Storageverbrauch (ohne Clusternodes)",
+        "type": "stat"
+        },
+        {
+        "datasource": {
+            "type": "prometheus",
+            "uid": "Mimir-Harvester"
+        },
+        "fieldConfig": {
+            "defaults": {
+            "color": {
+                "mode": "thresholds"
+            },
+            "mappings": [],
+            "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                {
+                    "color": "green",
+                    "value": null
+                }
+                ]
+            },
+            "unit": "gbytes"
+            },
+            "overrides": []
+        },
+        "gridPos": {
+            "h": 4,
+            "w": 7,
+            "x": 16,
+            "y": 9
+        },
+        "id": 70,
+        "options": {
+            "colorMode": "value",
+            "graphMode": "area",
+            "justifyMode": "auto",
+            "orientation": "auto",
+            "reduceOptions": {
+            "calcs": [
+                "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+            },
+            "showPercentChange": false,
+            "textMode": "auto",
+            "wideLayout": true
+        },
+        "pluginVersion": "10.4.9",
+        "targets": [
+            {
+            "datasource": {
+                "type": "prometheus",
+                "uid": "Mimir-Harvester"
+            },
+            "editorMode": "code",
+            "exemplar": false,
+            "expr": "longhorn_volume_actual_size_bytes{pvc_namespace=\"$cluster\"}",
+            "format": "table",
+            "instant": true,
+            "legendFormat": "__auto",
+            "range": false,
+            "refId": "A"
+            },
+            {
+            "datasource": {
+                "type": "prometheus",
+                "uid": "Mimir-Harvester"
+            },
+            "editorMode": "code",
+            "exemplar": false,
+            "expr": "kube_persistentvolumeclaim_resource_requests_storage_bytes / 1024 / 1024 / 1024",
+            "format": "table",
+            "hide": false,
+            "instant": true,
+            "legendFormat": "__auto",
+            "range": false,
+            "refId": "B"
+            }
+        ],
+        "title": "$cluster Storagerequest (mit Clusternodes)",
+        "transformations": [
+            {
+            "filter": {
+                "id": "byRefId",
+                "options": "B"
+            },
+            "id": "renameByRegex",
+            "options": {
+                "regex": "persistentvolumeclaim",
+                "renamePattern": "pvc"
+            }
+            },
+            {
+            "id": "joinByField",
+            "options": {
+                "byField": "pvc",
+                "mode": "outer"
+            }
+            },
+            {
+            "id": "filterByValue",
+            "options": {
+                "filters": [
+                {
+                    "config": {
+                    "id": "isNotNull",
+                    "options": {}
+                    },
+                    "fieldName": "pvc_namespace"
+                }
+                ],
+                "match": "any",
+                "type": "include"
+            }
+            },
+            {
+            "id": "organize",
+            "options": {
+                "excludeByName": {
+                "Time 1": true,
+                "Time 2": true,
+                "Value #A": true,
+                "__name__": true,
+                "__name__ 1": true,
+                "__name__ 2": true,
+                "container 1": true,
+                "container 2": true,
+                "endpoint 1": true,
+                "endpoint 2": true,
+                "instance 1": true,
+                "instance 2": true,
+                "job 1": true,
+                "job 2": true,
+                "namespace 1": true,
+                "namespace 2": true,
+                "node": true,
+                "pod 1": true,
+                "pod 2": true,
+                "prometheus 1": true,
+                "prometheus 2": true,
+                "prometheus_replica 1": true,
+                "prometheus_replica 2": true,
+                "pvc": true,
+                "pvc_namespace": true,
+                "service 1": true,
+                "service 2": true,
+                "volume": true
+                },
+                "includeByName": {},
+                "indexByName": {},
+                "renameByName": {
+                "Value #A": "actual_size",
+                "Value #B": "requested_size"
+                }
+            }
+            },
+            {
+            "id": "reduce",
+            "options": {
+                "includeTimeField": false,
+                "mode": "reduceFields",
+                "reducers": [
+                "sum"
+                ]
+            }
+            }
+        ],
+        "type": "stat"
+        },
+        {
+        "datasource": {
+            "type": "prometheus",
+            "uid": "Mimir-Harvester"
+        },
+        "fieldConfig": {
+            "defaults": {
+            "color": {
+                "mode": "thresholds"
+            },
+            "mappings": [],
+            "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                {
+                    "color": "green",
+                    "value": null
+                }
+                ]
+            },
+            "unit": "gbytes"
+            },
+            "overrides": []
+        },
+        "gridPos": {
+            "h": 4,
+            "w": 7,
+            "x": 16,
+            "y": 13
+        },
+        "id": 71,
+        "options": {
+            "colorMode": "value",
+            "graphMode": "area",
+            "justifyMode": "auto",
+            "orientation": "auto",
+            "reduceOptions": {
+            "calcs": [
+                "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+            },
+            "showPercentChange": false,
+            "textMode": "auto",
+            "wideLayout": true
+        },
+        "pluginVersion": "10.4.9",
+        "targets": [
+            {
+            "datasource": {
+                "type": "prometheus",
+                "uid": "Mimir-Harvester"
+            },
+            "editorMode": "code",
+            "exemplar": false,
+            "expr": "longhorn_volume_actual_size_bytes{pvc_namespace=\"$cluster\", pvc!~\"$cluster-.*\"}",
+            "format": "table",
+            "instant": true,
+            "legendFormat": "__auto",
+            "range": false,
+            "refId": "A"
+            },
+            {
+            "datasource": {
+                "type": "prometheus",
+                "uid": "Mimir-Harvester"
+            },
+            "editorMode": "code",
+            "exemplar": false,
+            "expr": "kube_persistentvolumeclaim_resource_requests_storage_bytes / 1024 / 1024 / 1024",
+            "format": "table",
+            "hide": false,
+            "instant": true,
+            "legendFormat": "__auto",
+            "range": false,
+            "refId": "B"
+            }
+        ],
+        "title": "$cluster Storagerequest (ohne Clusternodes)",
+        "transformations": [
+            {
+            "filter": {
+                "id": "byRefId",
+                "options": "B"
+            },
+            "id": "renameByRegex",
+            "options": {
+                "regex": "persistentvolumeclaim",
+                "renamePattern": "pvc"
+            }
+            },
+            {
+            "id": "joinByField",
+            "options": {
+                "byField": "pvc",
+                "mode": "outer"
+            }
+            },
+            {
+            "id": "filterByValue",
+            "options": {
+                "filters": [
+                {
+                    "config": {
+                    "id": "isNotNull",
+                    "options": {}
+                    },
+                    "fieldName": "pvc_namespace"
+                }
+                ],
+                "match": "any",
+                "type": "include"
+            }
+            },
+            {
+            "id": "organize",
+            "options": {
+                "excludeByName": {
+                "Time 1": true,
+                "Time 2": true,
+                "Value #A": true,
+                "__name__": true,
+                "__name__ 1": true,
+                "__name__ 2": true,
+                "container 1": true,
+                "container 2": true,
+                "endpoint 1": true,
+                "endpoint 2": true,
+                "instance 1": true,
+                "instance 2": true,
+                "job 1": true,
+                "job 2": true,
+                "namespace 1": true,
+                "namespace 2": true,
+                "node": true,
+                "pod 1": true,
+                "pod 2": true,
+                "prometheus 1": true,
+                "prometheus 2": true,
+                "prometheus_replica 1": true,
+                "prometheus_replica 2": true,
+                "pvc": true,
+                "pvc_namespace": true,
+                "service 1": true,
+                "service 2": true,
+                "volume": true
+                },
+                "includeByName": {},
+                "indexByName": {},
+                "renameByName": {
+                "Value #A": "actual_size",
+                "Value #B": "requested_size"
+                }
+            }
+            },
+            {
+            "id": "reduce",
+            "options": {
+                "includeTimeField": false,
+                "mode": "reduceFields",
+                "reducers": [
+                "sum"
+                ]
+            }
+            }
+        ],
+        "type": "stat"
+        }
+    ],
+    "refresh": "",
+    "schemaVersion": 39,
+    "tags": [
+        "bits-custom"
+    ],
+    "templating": {
+        "list": [
+        {
+            "current": {},
+            "datasource": {
+            "type": "prometheus",
+            "uid": "Mimir-Harvester"
+            },
+            "definition": "query_result(group by (pvc_namespace) (longhorn_volume_actual_size_bytes))",
+            "hide": 0,
+            "includeAll": true,
+            "multi": true,
+            "name": "cluster",
+            "options": [],
+            "query": {
+            "qryType": 3,
+            "query": "query_result(group by (pvc_namespace) (longhorn_volume_actual_size_bytes))",
+            "refId": "PrometheusVariableQueryEditor-VariableQuery"
+            },
+            "refresh": 1,
+            "regex": "/pvc_namespace=\"((?!harvester-system|cattle-monitoring-system|local-prod)[^\"]+)\"/",
+            "skipUrlSync": false,
+            "sort": 0,
+            "type": "query"
+        }
+        ]
+    },
+    "time": {
+        "from": "now-5m",
+        "to": "now"
+    },
+    "timepicker": {},
+    "timezone": "browser",
+    "title": "Storage Billing",
+    "uid": "eeex7juot4em8b",
+    "version": 4,
+    "weekStart": ""
+    }

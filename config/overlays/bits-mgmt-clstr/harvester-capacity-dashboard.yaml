@@ -1,0 +1,1054 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  labels:
+    grafana_dashboard: "1"
+  name: harvester-capacity-dashboard-configmaps
+  namespace: cattle-monitoring-system
+data:
+  harvester-capacity-dashboard.json: |-
+    {
+    "__inputs": [
+        {
+        "name": "DS_MIMIR-HARVESTER",
+        "label": "Mimir-Harvester",
+        "description": ".",
+        "type": "datasource",
+        "pluginId": "prometheus",
+        "pluginName": "Prometheus"
+        }
+    ],
+    "__elements": {},
+    "__requires": [
+        {
+        "type": "panel",
+        "id": "gauge",
+        "name": "Gauge",
+        "version": ""
+        },
+        {
+        "type": "grafana",
+        "id": "grafana",
+        "name": "Grafana",
+        "version": "10.4.9"
+        },
+        {
+        "type": "datasource",
+        "id": "prometheus",
+        "name": "Prometheus",
+        "version": "1.0.0"
+        },
+        {
+        "type": "panel",
+        "id": "table",
+        "name": "Table",
+        "version": ""
+        },
+        {
+        "type": "panel",
+        "id": "timeseries",
+        "name": "Time series",
+        "version": ""
+        }
+    ],
+    "annotations": {
+        "list": [
+        {
+            "builtIn": 1,
+            "datasource": {
+            "type": "grafana",
+            "uid": "-- Grafana --"
+            },
+            "enable": true,
+            "hide": true,
+            "iconColor": "rgba(0, 211, 255, 1)",
+            "name": "Annotations & Alerts",
+            "type": "dashboard"
+        }
+        ]
+    },
+    "editable": true,
+    "fiscalYearStartMonth": 0,
+    "graphTooltip": 0,
+    "id": null,
+    "links": [],
+    "panels": [
+        {
+        "datasource": {
+            "type": "prometheus",
+            "uid": "Mimir-Harvester"
+        },
+        "fieldConfig": {
+            "defaults": {
+            "color": {
+                "mode": "thresholds"
+            },
+            "custom": {
+                "align": "auto",
+                "cellOptions": {
+                "type": "auto"
+                },
+                "filterable": true,
+                "inspect": false
+            },
+            "mappings": [],
+            "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                {
+                    "color": "green",
+                    "value": null
+                },
+                {
+                    "color": "red",
+                    "value": 80
+                }
+                ]
+            },
+            "unit": "bytes"
+            },
+            "overrides": [
+            {
+                "matcher": {
+                "id": "byName",
+                "options": "persistentvolumeclaim"
+                },
+                "properties": [
+                {
+                    "id": "custom.width",
+                    "value": 445
+                }
+                ]
+            },
+            {
+                "matcher": {
+                "id": "byName",
+                "options": "efficiency_ratio"
+                },
+                "properties": [
+                {
+                    "id": "unit",
+                    "value": "none"
+                }
+                ]
+            }
+            ]
+        },
+        "gridPos": {
+            "h": 12,
+            "w": 24,
+            "x": 0,
+            "y": 0
+        },
+        "id": 7,
+        "options": {
+            "cellHeight": "sm",
+            "footer": {
+            "countRows": false,
+            "fields": "",
+            "reducer": [
+                "sum"
+            ],
+            "show": false
+            },
+            "frameIndex": 1,
+            "showHeader": true,
+            "sortBy": [
+            {
+                "desc": true,
+                "displayName": "efficiency_quotient"
+            }
+            ]
+        },
+        "pluginVersion": "10.4.9",
+        "targets": [
+            {
+            "datasource": {
+                "type": "prometheus",
+                "uid": "Mimir-Harvester"
+            },
+            "editorMode": "code",
+            "exemplar": false,
+            "expr": "kube_persistentvolumeclaim_resource_requests_storage_bytes{persistentvolumeclaim=~\"${pvcs}\"}",
+            "format": "table",
+            "instant": true,
+            "legendFormat": "__auto",
+            "range": false,
+            "refId": "A"
+            },
+            {
+            "datasource": {
+                "type": "prometheus",
+                "uid": "Mimir-Harvester"
+            },
+            "editorMode": "code",
+            "exemplar": false,
+            "expr": "longhorn_volume_actual_size_bytes{pvc=~\"${pvcs}\"}",
+            "format": "table",
+            "hide": false,
+            "instant": true,
+            "legendFormat": "__auto",
+            "range": false,
+            "refId": "B"
+            }
+        ],
+        "title": "Storage requested vs actual",
+        "transformations": [
+            {
+            "filter": {
+                "id": "byRefId",
+                "options": "A"
+            },
+            "id": "renameByRegex",
+            "options": {
+                "regex": "persistentvolumeclaim",
+                "renamePattern": "pvc"
+            },
+            "topic": "series"
+            },
+            {
+            "id": "joinByField",
+            "options": {
+                "byField": "pvc",
+                "mode": "outer"
+            }
+            },
+            {
+            "id": "organize",
+            "options": {
+                "excludeByName": {
+                "Time 1": true,
+                "Time 2": true,
+                "__name__ 1": true,
+                "__name__ 2": true,
+                "container 1": true,
+                "container 2": true,
+                "endpoint 1": true,
+                "endpoint 2": true,
+                "instance 1": true,
+                "instance 2": true,
+                "job 1": true,
+                "job 2": true,
+                "namespace 1": true,
+                "namespace 2": true,
+                "node": true,
+                "pod 1": true,
+                "pod 2": true,
+                "prometheus 1": true,
+                "prometheus 2": true,
+                "prometheus_replica 1": true,
+                "prometheus_replica 2": true,
+                "service 1": true,
+                "service 2": true
+                },
+                "includeByName": {},
+                "indexByName": {
+                "Time 1": 3,
+                "Time 2": 15,
+                "Value #A": 14,
+                "Value #B": 27,
+                "__name__ 1": 4,
+                "__name__ 2": 16,
+                "container 1": 5,
+                "container 2": 17,
+                "endpoint 1": 6,
+                "endpoint 2": 18,
+                "instance 1": 7,
+                "instance 2": 19,
+                "job 1": 8,
+                "job 2": 20,
+                "namespace 1": 9,
+                "namespace 2": 21,
+                "node": 22,
+                "pod 1": 10,
+                "pod 2": 23,
+                "prometheus 1": 11,
+                "prometheus 2": 24,
+                "prometheus_replica 1": 12,
+                "prometheus_replica 2": 25,
+                "pvc": 1,
+                "pvc_namespace": 0,
+                "service 1": 13,
+                "service 2": 26,
+                "volume": 2
+                },
+                "renameByName": {
+                "Value #A": "requested_size",
+                "Value #B": "actual_size"
+                }
+            }
+            },
+            {
+            "id": "calculateField",
+            "options": {
+                "alias": "efficiency_ratio",
+                "binary": {
+                "left": "requested_size",
+                "operator": "/",
+                "right": "actual_size"
+                },
+                "mode": "binary",
+                "reduce": {
+                "reducer": "sum"
+                }
+            }
+            }
+        ],
+        "type": "table"
+        },
+        {
+        "collapsed": true,
+        "gridPos": {
+            "h": 1,
+            "w": 24,
+            "x": 0,
+            "y": 12
+        },
+        "id": 9,
+        "panels": [
+            {
+            "datasource": {
+                "type": "prometheus",
+                "uid": "Mimir-Harvester"
+            },
+            "fieldConfig": {
+                "defaults": {
+                "color": {
+                    "mode": "palette-classic"
+                },
+                "custom": {
+                    "axisBorderShow": false,
+                    "axisCenteredZero": false,
+                    "axisColorMode": "text",
+                    "axisLabel": "",
+                    "axisPlacement": "auto",
+                    "barAlignment": 0,
+                    "drawStyle": "line",
+                    "fillOpacity": 0,
+                    "gradientMode": "none",
+                    "hideFrom": {
+                    "legend": false,
+                    "tooltip": false,
+                    "viz": false
+                    },
+                    "insertNulls": false,
+                    "lineInterpolation": "stepAfter",
+                    "lineWidth": 1,
+                    "pointSize": 5,
+                    "scaleDistribution": {
+                    "type": "linear"
+                    },
+                    "showPoints": "auto",
+                    "spanNulls": false,
+                    "stacking": {
+                    "group": "A",
+                    "mode": "none"
+                    },
+                    "thresholdsStyle": {
+                    "mode": "off"
+                    }
+                },
+                "mappings": [],
+                "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                    {
+                        "color": "green",
+                        "value": null
+                    },
+                    {
+                        "color": "red",
+                        "value": 80
+                    }
+                    ]
+                },
+                "unit": "gbytes"
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 8,
+                "w": 12,
+                "x": 0,
+                "y": 13
+            },
+            "id": 1,
+            "options": {
+                "legend": {
+                "calcs": [],
+                "displayMode": "list",
+                "placement": "bottom",
+                "showLegend": true
+                },
+                "timezone": [
+                "browser"
+                ],
+                "tooltip": {
+                "mode": "single",
+                "sort": "none"
+                }
+            },
+            "targets": [
+                {
+                "datasource": {
+                    "type": "prometheus",
+                    "uid": "Mimir-Harvester"
+                },
+                "editorMode": "code",
+                "expr": "round(sum(kube_node_status_allocatable{resource=\"memory\"}) / 1024 / 1024 / 1024, 1)",
+                "instant": false,
+                "interval": "",
+                "legendFormat": "Total Memory",
+                "range": true,
+                "refId": "A"
+                },
+                {
+                "datasource": {
+                    "type": "prometheus",
+                    "uid": "Mimir-Harvester"
+                },
+                "editorMode": "code",
+                "expr": "round(sum(kube_pod_container_resource_requests{resource=\"memory\", node!=\"\"}) / 1024 / 1024 / 1024, 1)",
+                "hide": false,
+                "instant": false,
+                "legendFormat": "Reserved Memory",
+                "range": true,
+                "refId": "B"
+                },
+                {
+                "datasource": {
+                    "type": "prometheus",
+                    "uid": "Mimir-Harvester"
+                },
+                "editorMode": "code",
+                "expr": "sum(container_memory_usage_bytes{job=\"kubelet\", image!=\"\", container!=\"POD\"}) / 1024 / 1024 / 1024",
+                "hide": false,
+                "instant": false,
+                "legendFormat": "Used Memory",
+                "range": true,
+                "refId": "C"
+                }
+            ],
+            "title": "RAM Capacity",
+            "type": "timeseries"
+            },
+            {
+            "datasource": {
+                "type": "prometheus",
+                "uid": "Mimir-Harvester"
+            },
+            "fieldConfig": {
+                "defaults": {
+                "color": {
+                    "mode": "palette-classic"
+                },
+                "custom": {
+                    "axisBorderShow": false,
+                    "axisCenteredZero": false,
+                    "axisColorMode": "text",
+                    "axisLabel": "",
+                    "axisPlacement": "auto",
+                    "barAlignment": 0,
+                    "drawStyle": "line",
+                    "fillOpacity": 0,
+                    "gradientMode": "none",
+                    "hideFrom": {
+                    "legend": false,
+                    "tooltip": false,
+                    "viz": false
+                    },
+                    "insertNulls": false,
+                    "lineInterpolation": "linear",
+                    "lineWidth": 1,
+                    "pointSize": 5,
+                    "scaleDistribution": {
+                    "type": "linear"
+                    },
+                    "showPoints": "auto",
+                    "spanNulls": false,
+                    "stacking": {
+                    "group": "A",
+                    "mode": "none"
+                    },
+                    "thresholdsStyle": {
+                    "mode": "off"
+                    }
+                },
+                "mappings": [],
+                "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                    {
+                        "color": "green",
+                        "value": null
+                    },
+                    {
+                        "color": "red",
+                        "value": 80
+                    }
+                    ]
+                }
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 8,
+                "w": 12,
+                "x": 12,
+                "y": 13
+            },
+            "id": 2,
+            "options": {
+                "legend": {
+                "calcs": [],
+                "displayMode": "list",
+                "placement": "bottom",
+                "showLegend": true
+                },
+                "tooltip": {
+                "mode": "single",
+                "sort": "none"
+                }
+            },
+            "targets": [
+                {
+                "datasource": {
+                    "type": "prometheus",
+                    "uid": "Mimir-Harvester"
+                },
+                "editorMode": "code",
+                "expr": "sum(kube_node_status_allocatable{resource=\"cpu\"})",
+                "instant": false,
+                "legendFormat": "Total CPU",
+                "range": true,
+                "refId": "A"
+                },
+                {
+                "datasource": {
+                    "type": "prometheus",
+                    "uid": "Mimir-Harvester"
+                },
+                "editorMode": "code",
+                "expr": "round(sum(kube_pod_container_resource_requests{resource=\"cpu\", node!=\"\"}), 0.01)",
+                "hide": false,
+                "instant": false,
+                "legendFormat": "Reserved CPU",
+                "range": true,
+                "refId": "B"
+                },
+                {
+                "datasource": {
+                    "type": "prometheus",
+                    "uid": "Mimir-Harvester"
+                },
+                "editorMode": "code",
+                "expr": "sum(rate(container_cpu_usage_seconds_total{job=\"kubelet\", image!=\"\", container!=\"POD\"}[5m]))",
+                "hide": false,
+                "instant": false,
+                "legendFormat": "Used CPU (over 5m)",
+                "range": true,
+                "refId": "C"
+                }
+            ],
+            "title": "CPU Capacity",
+            "type": "timeseries"
+            },
+            {
+            "datasource": {
+                "type": "prometheus",
+                "uid": "Mimir-Harvester"
+            },
+            "fieldConfig": {
+                "defaults": {
+                "color": {
+                    "mode": "palette-classic"
+                },
+                "custom": {
+                    "axisBorderShow": false,
+                    "axisCenteredZero": false,
+                    "axisColorMode": "text",
+                    "axisLabel": "",
+                    "axisPlacement": "auto",
+                    "barAlignment": 0,
+                    "drawStyle": "line",
+                    "fillOpacity": 0,
+                    "gradientMode": "none",
+                    "hideFrom": {
+                    "legend": false,
+                    "tooltip": false,
+                    "viz": false
+                    },
+                    "insertNulls": false,
+                    "lineInterpolation": "linear",
+                    "lineWidth": 1,
+                    "pointSize": 5,
+                    "scaleDistribution": {
+                    "type": "linear"
+                    },
+                    "showPoints": "auto",
+                    "spanNulls": false,
+                    "stacking": {
+                    "group": "A",
+                    "mode": "none"
+                    },
+                    "thresholdsStyle": {
+                    "mode": "off"
+                    }
+                },
+                "mappings": [],
+                "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                    {
+                        "color": "green",
+                        "value": null
+                    },
+                    {
+                        "color": "red",
+                        "value": 80
+                    }
+                    ]
+                },
+                "unit": "tbytes"
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 8,
+                "w": 12,
+                "x": 0,
+                "y": 21
+            },
+            "id": 5,
+            "options": {
+                "legend": {
+                "calcs": [],
+                "displayMode": "list",
+                "placement": "bottom",
+                "showLegend": true
+                },
+                "tooltip": {
+                "mode": "single",
+                "sort": "none"
+                }
+            },
+            "targets": [
+                {
+                "datasource": {
+                    "type": "prometheus",
+                    "uid": "Mimir-Harvester"
+                },
+                "editorMode": "code",
+                "expr": "sum (longhorn_node_storage_capacity_bytes) / 1024 / 1024 / 1024 / 1024",
+                "instant": false,
+                "legendFormat": "Total Storage (TB)",
+                "range": true,
+                "refId": "A"
+                },
+                {
+                "datasource": {
+                    "type": "prometheus",
+                    "uid": "Mimir-Harvester"
+                },
+                "editorMode": "code",
+                "expr": "sum(longhorn_node_storage_usage_bytes) / 1024 / 1024 / 1024 / 1024",
+                "hide": false,
+                "instant": false,
+                "legendFormat": "Used Storage (TB)",
+                "range": true,
+                "refId": "B"
+                },
+                {
+                "datasource": {
+                    "type": "prometheus",
+                    "uid": "Mimir-Harvester"
+                },
+                "editorMode": "code",
+                "expr": "sum(kube_persistentvolumeclaim_resource_requests_storage_bytes) / 1024 / 1024 / 1024 / 1024 * 3 ",
+                "hide": false,
+                "instant": false,
+                "legendFormat": "Reserved Storage (TB)",
+                "range": true,
+                "refId": "C"
+                }
+            ],
+            "title": "Storage Capacity",
+            "type": "timeseries"
+            }
+        ],
+        "title": "Capacity Graphs",
+        "type": "row"
+        },
+        {
+        "collapsed": true,
+        "gridPos": {
+            "h": 1,
+            "w": 24,
+            "x": 0,
+            "y": 13
+        },
+        "id": 8,
+        "panels": [
+            {
+            "datasource": {
+                "type": "prometheus",
+                "uid": "Mimir-Harvester"
+            },
+            "fieldConfig": {
+                "defaults": {
+                "color": {
+                    "mode": "thresholds"
+                },
+                "fieldMinMax": false,
+                "mappings": [],
+                "min": 0,
+                "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                    {
+                        "color": "red",
+                        "value": null
+                    },
+                    {
+                        "color": "yellow",
+                        "value": 1
+                    },
+                    {
+                        "color": "green",
+                        "value": 2
+                    }
+                    ]
+                },
+                "unit": "none"
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 8,
+                "w": 12,
+                "x": 0,
+                "y": 14
+            },
+            "id": 4,
+            "options": {
+                "minVizHeight": 75,
+                "minVizWidth": 75,
+                "orientation": "auto",
+                "reduceOptions": {
+                "calcs": [
+                    "lastNotNull"
+                ],
+                "fields": "",
+                "values": false
+                },
+                "showThresholdLabels": true,
+                "showThresholdMarkers": true,
+                "sizing": "auto"
+            },
+            "pluginVersion": "10.4.9",
+            "targets": [
+                {
+                "datasource": {
+                    "type": "prometheus",
+                    "uid": "Mimir-Harvester"
+                },
+                "editorMode": "code",
+                "expr": "(\r\n  sum(kube_node_status_allocatable{resource=\"memory\"}) \r\n  - sum(kube_pod_container_resource_requests{resource=\"memory\", node!=\"\"})\r\n)\r\n/\r\nmax(sum(kube_node_status_allocatable{resource=\"memory\"}) by (node))",
+                "hide": false,
+                "instant": false,
+                "legendFormat": "__auto",
+                "range": true,
+                "refId": "A"
+                },
+                {
+                "datasource": {
+                    "type": "prometheus",
+                    "uid": "Mimir-Harvester"
+                },
+                "editorMode": "code",
+                "expr": "count(kube_node_info)",
+                "hide": false,
+                "instant": false,
+                "legendFormat": "__auto",
+                "range": true,
+                "refId": "B"
+                }
+            ],
+            "title": "# Ausfall-Nodes (nach RAM)",
+            "transformations": [
+                {
+                "id": "configFromData",
+                "options": {
+                    "applyTo": {
+                    "id": "byType",
+                    "options": "number"
+                    },
+                    "configRefId": "B",
+                    "mappings": [
+                    {
+                        "fieldName": "count(kube_node_info)",
+                        "handlerKey": "max",
+                        "reducerId": "lastNotNull"
+                    }
+                    ]
+                }
+                }
+            ],
+            "type": "gauge"
+            },
+            {
+            "datasource": {
+                "type": "prometheus",
+                "uid": "Mimir-Harvester"
+            },
+            "fieldConfig": {
+                "defaults": {
+                "color": {
+                    "mode": "thresholds"
+                },
+                "mappings": [],
+                "min": 0,
+                "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                    {
+                        "color": "red",
+                        "value": null
+                    },
+                    {
+                        "color": "yellow",
+                        "value": 1
+                    },
+                    {
+                        "color": "green",
+                        "value": 2
+                    }
+                    ]
+                }
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 8,
+                "w": 12,
+                "x": 12,
+                "y": 14
+            },
+            "id": 3,
+            "options": {
+                "minVizHeight": 75,
+                "minVizWidth": 75,
+                "orientation": "auto",
+                "reduceOptions": {
+                "calcs": [
+                    "lastNotNull"
+                ],
+                "fields": "",
+                "values": false
+                },
+                "showThresholdLabels": true,
+                "showThresholdMarkers": true,
+                "sizing": "auto"
+            },
+            "pluginVersion": "10.4.9",
+            "targets": [
+                {
+                "datasource": {
+                    "type": "prometheus",
+                    "uid": "Mimir-Harvester"
+                },
+                "editorMode": "code",
+                "expr": "(\r\n  sum(kube_node_status_allocatable{resource=\"cpu\"}) \r\n  - sum(kube_pod_container_resource_requests{resource=\"cpu\", node!=\"\"})\r\n)\r\n/\r\nmax(sum(kube_node_status_allocatable{resource=\"cpu\"}) by (node))\r\n",
+                "instant": false,
+                "legendFormat": "__auto",
+                "range": true,
+                "refId": "A"
+                },
+                {
+                "datasource": {
+                    "type": "prometheus",
+                    "uid": "Mimir-Harvester"
+                },
+                "editorMode": "code",
+                "expr": "count(kube_node_info)",
+                "hide": false,
+                "instant": false,
+                "legendFormat": "__auto",
+                "range": true,
+                "refId": "B"
+                }
+            ],
+            "title": "# Ausfall-Nodes (nach CPU)",
+            "transformations": [
+                {
+                "id": "configFromData",
+                "options": {
+                    "applyTo": {
+                    "id": "byType",
+                    "options": "number"
+                    },
+                    "configRefId": "B",
+                    "mappings": [
+                    {
+                        "fieldName": "count(kube_node_info)",
+                        "handlerKey": "max"
+                    }
+                    ]
+                }
+                }
+            ],
+            "type": "gauge"
+            },
+            {
+            "datasource": {
+                "type": "prometheus",
+                "uid": "Mimir-Harvester"
+            },
+            "fieldConfig": {
+                "defaults": {
+                "color": {
+                    "mode": "thresholds"
+                },
+                "fieldMinMax": false,
+                "mappings": [],
+                "min": 0,
+                "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                    {
+                        "color": "red",
+                        "value": null
+                    },
+                    {
+                        "color": "yellow",
+                        "value": 2
+                    },
+                    {
+                        "color": "green",
+                        "value": 3
+                    }
+                    ]
+                }
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 8,
+                "w": 12,
+                "x": 0,
+                "y": 22
+            },
+            "id": 6,
+            "options": {
+                "minVizHeight": 75,
+                "minVizWidth": 75,
+                "orientation": "auto",
+                "reduceOptions": {
+                "calcs": [
+                    "lastNotNull"
+                ],
+                "fields": "",
+                "values": false
+                },
+                "showThresholdLabels": true,
+                "showThresholdMarkers": true,
+                "sizing": "auto"
+            },
+            "pluginVersion": "10.4.9",
+            "targets": [
+                {
+                "datasource": {
+                    "type": "prometheus",
+                    "uid": "Mimir-Harvester"
+                },
+                "editorMode": "code",
+                "expr": "(\r\n  sum(longhorn_node_storage_capacity_bytes) \r\n  - sum(kube_persistentvolumeclaim_resource_requests_storage_bytes) * 3\r\n) / max(longhorn_disk_capacity_bytes)",
+                "instant": false,
+                "legendFormat": "Ausfalldisks",
+                "range": true,
+                "refId": "A"
+                },
+                {
+                "datasource": {
+                    "type": "prometheus",
+                    "uid": "Mimir-Harvester"
+                },
+                "editorMode": "code",
+                "expr": "count(longhorn_disk_capacity_bytes)",
+                "hide": false,
+                "instant": false,
+                "legendFormat": "__auto",
+                "range": true,
+                "refId": "B"
+                }
+            ],
+            "title": "# Ausfall-Disks ",
+            "transformations": [
+                {
+                "id": "configFromData",
+                "options": {
+                    "configRefId": "B",
+                    "mappings": [
+                    {
+                        "fieldName": "Ausfalldisks",
+                        "handlerKey": "max"
+                    },
+                    {
+                        "fieldName": "count(longhorn_disk_capacity_bytes)",
+                        "handlerKey": "max"
+                    }
+                    ]
+                }
+                }
+            ],
+            "type": "gauge"
+            }
+        ],
+        "title": "Ausfall-Puffer",
+        "type": "row"
+        }
+    ],
+    "refresh": "",
+    "schemaVersion": 39,
+    "tags": [
+        "bits-custom"
+    ],
+    "templating": {
+        "list": [
+        {
+            "current": {},
+            "datasource": {
+            "type": "prometheus",
+            "uid": "Mimir-Harvester"
+            },
+            "definition": "query_result(group by (pvc) (longhorn_volume_actual_size_bytes))",
+            "hide": 0,
+            "includeAll": true,
+            "label": "pvcs",
+            "multi": true,
+            "name": "pvcs",
+            "options": [],
+            "query": {
+            "qryType": 3,
+            "query": "query_result(group by (pvc) (longhorn_volume_actual_size_bytes))",
+            "refId": "PrometheusVariableQueryEditor-VariableQuery"
+            },
+            "refresh": 1,
+            "regex": "/pvc=\"([^\"]+)\"/",
+            "skipUrlSync": false,
+            "sort": 0,
+            "type": "query"
+        }
+        ]
+    },
+    "time": {
+        "from": "now-30d",
+        "to": "now"
+    },
+    "timepicker": {},
+    "timezone": "browser",
+    "title": "Harvester Capacity",
+    "uid": "deetfjw9p4em8a",
+    "version": 4,
+    "weekStart": ""
+    }

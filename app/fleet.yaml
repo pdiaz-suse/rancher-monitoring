@@ -1,0 +1,382 @@
+defaultNamespace: cattle-monitoring-system
+helm:
+  version: "105.1.3+up61.3.2"
+  chart: oci://registry.kamu.adm/rancher-charts/rancher-prime-charts/rancher-monitoring
+  releaseName: rancher-monitoring
+  values:
+    global:
+      cattle:
+        systemDefaultRegistry: registry.rancher.com
+        clusterId: global.fleet.clusterLabels.management.cattle.io/cluster-name
+        clusterName: global.fleet.clusterLabels.management.cattle.io/cluster-display-name
+    prometheusOperator:
+      resources:
+        limits:
+          cpu: 200m
+          memory: 1000Mi
+        requests:
+          cpu: 100m
+          memory: 500Mi
+
+    kube-state-metrics:
+      metricLabelsAllowlist: 
+        - nodes=[topology.kubernetes.io/zone]
+
+    prometheus:
+      prometheusSpec:
+        externalLabels:
+          cluster: ${ get .ClusterLabels "management.cattle.io/cluster-display-name" }
+        replicas: 3
+        resources:
+          limits:
+            cpu: 2
+            memory: 6000Mi
+          requests:
+            cpu: 1
+            memory: 3000Mi
+        retentionSize: 50GiB
+        remoteWriteDashboards: true
+        storageSpec:
+          volumeClaimTemplate:
+            spec:
+              storageClassName: vsphere
+              accessModes: ["ReadWriteOnce"]
+              resources:
+                requests:
+                  storage: 50Gi
+    grafana:
+      sidecar:
+        dashboards:
+          searchNamespace: ALL
+      replicas: 1
+      persistence:
+        enabled: true
+        size: 2Gi
+        storageClassName: vsphere
+
+    alertmanager:
+      alertmanagerSpec:
+        storage:
+          volumeClaimTemplate:
+            spec:
+              storageClassName: vsphere
+              resources:
+                requests:
+                  storage: 1Gi
+        replicas: 3
+    rke2ControllerManager:
+       enabled: true
+    rke2Scheduler:
+      enabled: true
+    rke2Proxy:
+      enabled: true
+    rke2Etcd:
+      enabled: true
+    rke2IngressNginx:
+      enabled: false
+
+
+targetCustomizations:
+- name: gwa-amm-mdm-kon
+  helm:
+    values:
+      prometheus:
+        prometheusSpec:
+          resources:
+            limits:
+              memory: 10000Mi
+          serviceMonitorNamespaceSelector:
+            matchExpressions:
+              - key: kubernetes.io/metadata.name
+                operator: In
+                values:
+                  - cattle-monitoring-system
+                  - cattle-logging-system
+                  - cattle-fleet-system
+          remoteWrite:
+            - url: https://mimir.kon.bits-mgmt.k8s.kamu.adm/api/v1/push
+              headers:
+                "X-Scope-OrgID": ${ get .ClusterLabels "management.cattle.io/cluster-display-name" }
+              tlsConfig:
+                ca:
+                  secret:
+                    key: tls.crt
+                    name: kamu-root-ca
+  clusterSelector:
+    matchLabels:
+      management.cattle.io/cluster-display-name: gwa-amm-mdm-kon
+      stage: kon
+- name: bits-mgmt-clstr-kon
+  helm:
+    values:
+      rke2IngressNginx:
+        enabled: true
+      prometheus:
+        prometheusSpec:
+          remoteWrite:
+            - url: https://mimir.kon.bits-mgmt.k8s.kamu.adm/api/v1/push
+              headers:
+                "X-Scope-OrgID": ${ get .ClusterLabels "management.cattle.io/cluster-display-name" }
+              tlsConfig:
+                ca:
+                  secret:
+                    key: tls.crt
+                    name: kamu-root-ca
+          storageSpec:
+            volumeClaimTemplate:
+              spec:
+                storageClassName: harvester
+      grafana:
+        datasources:
+         datasources.yaml:
+           apiVersion: 1
+           datasources:
+           - name: Mimir-Harvester
+             url: http://mimir-gateway.mimir.svc/prometheus
+             type: prometheus
+             uid: Mimir-Harvester
+             editable: false
+             jsonData:
+               httpHeaderName1: 'X-Scope-OrgID'
+             secureJsonData:
+               httpHeaderValue1: 'harvester-kon'
+           deleteDatasources: []
+        resources:
+          limits:
+            memory: 800Mi
+            cpu: 200m
+          requests:
+            memory: 250Mi
+            cpu: 100m
+        persistence:
+          storageClassName: harvester
+      alertmanager:
+        alertmanagerSpec:
+          storage:
+            volumeClaimTemplate:
+              spec:
+                storageClassName: harvester
+  clusterSelector:
+    matchLabels:
+      management.cattle.io/cluster-display-name: bits-mgmt-clstr-kon
+      provider: harvester
+      stage: kon
+- name: bits-mgmt-clstr-prod
+  helm:
+    values:
+      prometheus:
+        prometheusSpec:
+          remoteWrite:
+            - url: https://mimir.prod.bits-mgmt.k8s.kamu.adm/api/v1/push
+              headers:
+                "X-Scope-OrgID": ${ get .ClusterLabels "management.cattle.io/cluster-display-name" }
+              tlsConfig:
+                ca:
+                  secret:
+                    key: tls.crt
+                    name: kamu-root-ca
+          storageSpec:
+            volumeClaimTemplate:
+              spec:
+                storageClassName: harvester
+      grafana:
+        datasources:
+          datasources.yaml:
+            apiVersion: 1
+            datasources:
+            - name: Mimir-Harvester
+              url: http://mimir-gateway.mimir.svc/prometheus
+              type: prometheus
+              uid: Mimir-Harvester
+              editable: false
+              jsonData:
+                httpHeaderName1: 'X-Scope-OrgID'
+              secureJsonData:
+                httpHeaderValue1: 'harvester-prod'
+            deleteDatasources: []
+        resources:
+          limits:
+            memory: 800Mi
+            cpu: 200m
+          requests:
+            memory: 250Mi
+            cpu: 100m
+        persistence:
+          storageClassName: harvester
+      alertmanager:
+        alertmanagerSpec:
+          storage:
+            volumeClaimTemplate:
+              spec:
+                storageClassName: harvester
+  clusterSelector:
+    matchLabels:
+      management.cattle.io/cluster-display-name: bits-mgmt-clstr-prod
+      provider: harvester
+      stage: prod
+- name: harvester-kon
+  helm:
+    values:
+      prometheus:
+        prometheusSpec:
+          remoteWrite:
+            - url: https://mimir.kon.bits-mgmt.k8s.kamu.adm/api/v1/push
+              headers:
+                "X-Scope-OrgID": ${ get .ClusterLabels "management.cattle.io/cluster-display-name" }
+              tlsConfig:
+                ca:
+                  secret:
+                    key: tls.crt
+                    name: kamu-root-ca
+          storageSpec:
+            volumeClaimTemplate:
+              spec:
+                storageClassName: harvester
+      grafana:
+        persistence:
+          storageClassName: harvester
+      alertmanager:
+        alertmanagerSpec:
+          storage:
+            volumeClaimTemplate:
+              spec:
+                storageClassName: harvester
+  clusterSelector:
+    matchLabels:
+      provider: harvester
+      stage: kon
+- name: harvester-prod
+  helm:
+    values:
+      prometheus:
+        prometheusSpec:
+          remoteWrite:
+            - url: https://mimir.prod.bits-mgmt.k8s.kamu.adm/api/v1/push
+              headers:
+                "X-Scope-OrgID": ${ get .ClusterLabels "management.cattle.io/cluster-display-name" }
+              tlsConfig:
+                ca:
+                  secret:
+                    key: tls.crt
+                    name: kamu-root-ca
+          storageSpec:
+            volumeClaimTemplate:
+              spec:
+                storageClassName: harvester
+      grafana:
+        persistence:
+          storageClassName: harvester
+      alertmanager:
+        alertmanagerSpec:
+          storage:
+            volumeClaimTemplate:
+              spec:
+                storageClassName: harvester
+  clusterSelector:
+    matchLabels:
+      provider: harvester
+      stage: prod
+- name: local-prod
+  helm:
+    values:
+      prometheus:
+        prometheusSpec:
+          remoteWrite:
+            - url: https://mimir.prod.bits-mgmt.k8s.kamu.adm/api/v1/push
+              headers:
+                "X-Scope-OrgID": ${ get .ClusterLabels "management.cattle.io/cluster-display-name" }
+              tlsConfig:
+                ca:
+                  secret:
+                    key: tls.crt
+                    name: kamu-root-ca
+          storageSpec:
+            volumeClaimTemplate:
+              spec:
+                storageClassName: harvester
+      grafana:
+        persistence:
+          storageClassName: harvester
+      alertmanager:
+        alertmanagerSpec:
+          storage:
+            volumeClaimTemplate:
+              spec:
+                storageClassName: harvester
+  clusterSelector:
+    matchLabels:
+      management.cattle.io/cluster-display-name: local
+      stage: prod
+- name: local-kon
+  helm:
+    values:
+      prometheus:
+        prometheusSpec:
+          remoteWrite:
+            - url: https://mimir.kon.bits-mgmt.k8s.kamu.adm/api/v1/push
+              headers:
+                "X-Scope-OrgID": ${ get .ClusterLabels "management.cattle.io/cluster-display-name" }
+              tlsConfig:
+                ca:
+                  secret:
+                    key: tls.crt
+                    name: kamu-root-ca
+          storageSpec:
+            volumeClaimTemplate:
+              spec:
+                storageClassName: harvester
+      grafana:
+        persistence:
+          storageClassName: harvester
+      alertmanager:
+        alertmanagerSpec:
+          storage:
+            volumeClaimTemplate:
+              spec:
+                storageClassName: harvester
+  clusterSelector:
+    matchLabels:
+      management.cattle.io/cluster-display-name: local
+      stage: kon
+- name: kon
+  helm:
+    values:
+      prometheus:
+        prometheusSpec:
+          serviceMonitorNamespaceSelector:
+            matchExpressions:
+              - key: kubernetes.io/metadata.name
+                operator: In
+                values:
+                  - cattle-monitoring-system
+                  - cattle-logging-system
+                  - cattle-fleet-system
+          remoteWrite:
+            - url: https://mimir.kon.bits-mgmt.k8s.kamu.adm/api/v1/push
+              headers:
+                "X-Scope-OrgID": ${ get .ClusterLabels "management.cattle.io/cluster-display-name" }
+              tlsConfig:
+                ca:
+                  secret:
+                    key: tls.crt
+                    name: kamu-root-ca
+  clusterSelector:
+    matchLabels:
+      stage: kon
+- name: prod
+  helm:
+    values:
+      prometheus:
+        prometheusSpec:
+          remoteWrite:
+            - url: https://mimir.prod.bits-mgmt.k8s.kamu.adm/api/v1/push
+              headers:
+                "X-Scope-OrgID": ${ get .ClusterLabels "management.cattle.io/cluster-display-name" }
+              tlsConfig:
+                ca:
+                  secret:
+                    key: tls.crt
+                    name: kamu-root-ca
+  clusterSelector:
+    matchLabels:
+      stage: prod

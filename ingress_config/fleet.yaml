@@ -1,0 +1,25 @@
+defaultNamespace: cattle-monitoring-system
+helm:
+  releaseName: rancher-monitoring-ingress-config
+  values: 
+    icinga:
+      hosts:
+        - 10.30.4.41
+        - 10.30.4.47
+    monitoring:
+      prometheus:
+        host: monitoring.${ if hasKey .ClusterLabels "ingress_domain" }${ .ClusterLabels.ingress_domain }${ else }local${ end}
+        path: /prometheus(/|$)(.*)
+targetCustomizations:
+# customization according to https://wiki.btc-ag.com/confluence/pages/viewpage.action?spaceKey=BITSSMT&title=Icinga2+Zonen
+# not yet complete. should be extended for new customers
+- name: mke-master
+  helm:
+    values: 
+      icinga:
+        hosts:
+          - 172.21.254.69
+          - 172.21.254.70
+  clusterSelector:
+    matchLabels:
+      icinga-customer: mke-master

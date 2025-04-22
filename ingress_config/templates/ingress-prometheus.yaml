@@ -1,0 +1,35 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: prometheus-ingress
+  namespace: cattle-monitoring-system
+  annotations:
+    # IP Whitelisting to restrict access to specific IP ranges
+    nginx.ingress.kubernetes.io/whitelist-source-range: "{{ join "," .Values.icinga.hosts }}"  # Replace with your actual IP range
+    
+    # Basic Authentication configuration
+    nginx.ingress.kubernetes.io/auth-type: basic
+    nginx.ingress.kubernetes.io/auth-secret: prometheus-basic-auth  # Replace with your secret's name
+    nginx.ingress.kubernetes.io/auth-realm: "Restricted Access"
+
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+    
+    # Enforce SSL/TLS and redirect HTTP to HTTPS
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    
+spec:
+  tls:
+  - hosts:
+    - {{ .Values.monitoring.prometheus.host }}
+    secretName: prometheus-tls-secret
+  rules:
+  - host: {{ .Values.monitoring.prometheus.host }}
+    http:
+      paths:
+      - path: {{ .Values.monitoring.prometheus.path }}
+        pathType: Prefix
+        backend:
+          service:
+            name: rancher-monitoring-prometheus
+            port:
+              number: 9090
